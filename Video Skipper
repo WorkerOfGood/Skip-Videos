@@ -1,0 +1,49 @@
+// ==UserScript==
+// @name         Video Skipper
+// @namespace    https://chat.openai.com/
+// @version      1.1
+// @description  Doesn't work. Just a test.
+// @match        https://student.edgenuity.com/*
+// @match        https://*.learn.edgenuity.com/*
+// @run-at       document-idle
+// ==/UserScript==
+
+
+const tryVideoSkip = (doc) => {
+    if (hasSkipped) return;
+    const vid = doc.querySelector("video");
+    if (vid && !vid.ended) {
+      vid.currentTime = vid.duration;
+      vid.dispatchEvent(new Event("ended"));
+      log("Skipped video.");
+      hasSkipped = true;
+    }
+
+    const next = detectNext(doc);
+    if (next) {
+      next.click();
+      log("Clicked Next.");
+      hasSkipped = true;
+    }
+  };
+
+  const observer = new MutationObserver(() => {
+    const docs = getAllDocs();
+    for (const doc of docs) {
+      tryAnswerQuestion(doc);
+      tryVideoSkip(doc);
+      const next = detectNext(doc);
+      if (next && !hasAnswered && !hasSkipped) {
+        next.click();
+        log("Auto-advanced.");
+      }
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  window.addEventListener("load", () => {
+    hasAnswered = false;
+    hasSkipped = false;
+  });
+})();
